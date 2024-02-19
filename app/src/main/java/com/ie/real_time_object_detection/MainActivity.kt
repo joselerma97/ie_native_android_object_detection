@@ -3,6 +3,7 @@ package com.ie.real_time_object_detection
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -25,6 +26,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.ie.real_time_object_detection.ml.AutoModel1
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
@@ -43,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var cameraView: TextureView
     lateinit var cameraManager: CameraManager
     lateinit var model: AutoModel1
+    lateinit var floattingButton: FloatingActionButton
 
 
     var colors = listOf(
@@ -52,6 +55,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        floattingButton = findViewById(R.id.goCustom)
+        floattingButton.setOnClickListener {
+            val intent = Intent(this, CustomModel::class.java)
+            startActivity(intent)
+        }
 
         getPermission()
 
@@ -96,8 +105,8 @@ class MainActivity : AppCompatActivity() {
 
                 val h = mutable.height
                 val w = mutable.width
-                paint.textSize = h/60f
-                paint.strokeWidth = h/300f
+                paint.textSize = h/80f
+                paint.strokeWidth = h/350f
                 var x = 0
                 scores.forEachIndexed { index, fl ->
                     x = index

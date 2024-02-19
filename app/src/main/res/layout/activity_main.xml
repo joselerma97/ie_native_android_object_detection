@@ -16,5 +16,15 @@
         android:layout_height="match_parent"
         android:background="#000"
         android:id="@+id/imageView"/>
-    
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_app_shortcut_24"
+        android:contentDescription="Custom Analysis"
+        android:id="@+id/goCustom"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        />
+
 </RelativeLayout>
