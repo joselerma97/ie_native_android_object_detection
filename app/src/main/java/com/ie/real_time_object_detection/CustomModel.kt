@@ -3,7 +3,6 @@ package com.ie.real_time_object_detection
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -20,12 +19,13 @@ import android.os.HandlerThread
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.ie.real_time_object_detection.ml.PenNotebookBottle
-import com.ie.real_time_object_detection.ml.Yolo8Model3
-import com.ie.real_time_object_detection.ml.Yolov5nuFloat32
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.ops.ResizeOp
@@ -53,15 +53,16 @@ class CustomModel : AppCompatActivity() {
         Color.BLUE, Color.GREEN, Color.RED, Color.CYAN, Color.GRAY, Color.BLACK,
         Color.DKGRAY, Color.MAGENTA, Color.YELLOW, Color.RED)
 
+    private val viewModel: ScoreViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_custom_model)
 
         floatingActionButton = findViewById(R.id.goHome)
+        floatingActionButton.isVisible = false
         floatingActionButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            PredictionsDialog().show(supportFragmentManager, "PredictionsFragment")
         }
 
         getPermission()
@@ -102,7 +103,6 @@ class CustomModel : AppCompatActivity() {
                 val locations = outputs.locationsAsTensorBuffer.floatArray
                 val classes = outputs.classesAsTensorBuffer.floatArray
                 val scores = outputs.scoresAsTensorBuffer.floatArray
-                val numberOfDetections = outputs.numberOfDetectionsAsTensorBuffer.floatArray
 
                 val mutable = bitMap.copy(Bitmap.Config.ARGB_8888, true)
                 val canvas = Canvas(mutable)
@@ -121,11 +121,14 @@ class CustomModel : AppCompatActivity() {
                         canvas.drawRect(RectF(locations[x + 1] *w, locations[x] *h, locations[x + 3] *w, locations[x + 2] *h), paint)
                         paint.style = Paint.Style.FILL
                         canvas.drawText(labels[classes[index].toInt()] +" "+fl.toString(), locations[x+1] *w, locations[x] *h, paint)
+
+                        viewModel.name = labels[classes[index].toInt()]
+                        viewModel.score = fl
                     }
                 }
 
                 imageView.setImageBitmap(mutable)
-
+                floatingActionButton.isVisible = viewModel.hasNameAndScore()
             }
 
         }
