@@ -62,7 +62,8 @@ class CustomModel : AppCompatActivity() {
         floatingActionButton = findViewById(R.id.goHome)
         floatingActionButton.isVisible = false
         floatingActionButton.setOnClickListener {
-            PredictionsDialog().show(supportFragmentManager, "PredictionsFragment")
+            PredictionsDialog.newInstance(viewModel.name!!, viewModel.score!!).show(supportFragmentManager,
+                System.currentTimeMillis().toString())
         }
 
         getPermission()

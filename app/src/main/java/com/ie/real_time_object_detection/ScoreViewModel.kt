@@ -17,10 +17,14 @@ class ScoreViewModel: ViewModel() {
     var name: String? = null
     var score: Float? = null
 
-    private val _tips = MutableLiveData<String>()
+    val _tips = MutableLiveData<String>()
     val tips: LiveData<String> = _tips
 
     private val tipsService = createRetrofitService()
+
+    fun resetTips(){
+        _tips.postValue("")
+    }
 
     fun hasNameAndScore(): Boolean {
         return !name.isNullOrBlank() && score != null
@@ -34,10 +38,10 @@ class ScoreViewModel: ViewModel() {
         return retrofit.create(TipsService::class.java)
     }
 
-    fun fetchTips() {
+    fun fetchTips(type: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response: Call<TipsResponse> = tipsService.getTips("How can I recycle: $name")
+                val response: Call<TipsResponse> = tipsService.getTips("How can I recycle: $type")
                 _tips.postValue(response.await().tips)
             } catch (e: Exception) {
                 e.printStackTrace()
