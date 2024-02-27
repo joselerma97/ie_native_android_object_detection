@@ -117,7 +117,7 @@ class CustomModel : AppCompatActivity() {
                 scores.forEachIndexed { index, fl ->
                     x = index
                     x *= 4
-                    if(fl > 0.3){
+                    if(fl > 0.6){
                         paint.color = colors[index]
                         paint.style = Paint.Style.STROKE
                         canvas.drawRect(RectF(locations[x + 1] *w, locations[x] *h, locations[x + 3] *w, locations[x + 2] *h), paint)
