@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.ie.real_time_object_detection.ml.PlasticGlassCan
 import com.ie.real_time_object_detection.ml.WasteModel
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
@@ -45,7 +46,7 @@ class CustomModel : AppCompatActivity() {
     lateinit var handler: Handler
     lateinit var cameraView: TextureView
     lateinit var cameraManager: CameraManager
-    lateinit var model: WasteModel
+    lateinit var model: PlasticGlassCan
     lateinit var floatingActionButton: FloatingActionButton
 
     var colors = listOf(
@@ -68,12 +69,12 @@ class CustomModel : AppCompatActivity() {
 
         getPermission()
 
-        labels = FileUtil.loadLabels(this, "waste_model.txt")
+        labels = FileUtil.loadLabels(this, "plastic_glass_can.txt")
         imageProcessor = ImageProcessor.Builder().add(
             ResizeOp(
             512,512, ResizeOp.ResizeMethod.BILINEAR)
         ).build()
-        model = WasteModel.newInstance(this)
+        model = PlasticGlassCan.newInstance(this)
 
         val handlerThread = HandlerThread("HandlerVideoThread")
         handlerThread.start()
