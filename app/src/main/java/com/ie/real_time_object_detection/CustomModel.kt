@@ -23,9 +23,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.ie.real_time_object_detection.ml.PenNotebookBottle
+import com.ie.real_time_object_detection.ml.WasteModel
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.ops.ResizeOp
@@ -46,7 +45,7 @@ class CustomModel : AppCompatActivity() {
     lateinit var handler: Handler
     lateinit var cameraView: TextureView
     lateinit var cameraManager: CameraManager
-    lateinit var model: PenNotebookBottle
+    lateinit var model: WasteModel
     lateinit var floatingActionButton: FloatingActionButton
 
     var colors = listOf(
@@ -62,18 +61,19 @@ class CustomModel : AppCompatActivity() {
         floatingActionButton = findViewById(R.id.goHome)
         floatingActionButton.isVisible = false
         floatingActionButton.setOnClickListener {
+            viewModel.resetTips()
             PredictionsDialog.newInstance(viewModel.name!!, viewModel.score!!).show(supportFragmentManager,
                 System.currentTimeMillis().toString())
         }
 
         getPermission()
 
-        labels = FileUtil.loadLabels(this, "pen_notebook_bottle.txt")
+        labels = FileUtil.loadLabels(this, "waste_model.txt")
         imageProcessor = ImageProcessor.Builder().add(
             ResizeOp(
-            640,640, ResizeOp.ResizeMethod.BILINEAR)
+            512,512, ResizeOp.ResizeMethod.BILINEAR)
         ).build()
-        model = PenNotebookBottle.newInstance(this)
+        model = WasteModel.newInstance(this)
 
         val handlerThread = HandlerThread("HandlerVideoThread")
         handlerThread.start()
@@ -116,7 +116,7 @@ class CustomModel : AppCompatActivity() {
                 scores.forEachIndexed { index, fl ->
                     x = index
                     x *= 4
-                    if(fl > 0.5){
+                    if(fl > 0.3){
                         paint.color = colors[index]
                         paint.style = Paint.Style.STROKE
                         canvas.drawRect(RectF(locations[x + 1] *w, locations[x] *h, locations[x + 3] *w, locations[x + 2] *h), paint)

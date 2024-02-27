@@ -1,0 +1,6 @@
+paper
+clothes
+plastic
+biodegradable
+electronic
+glass

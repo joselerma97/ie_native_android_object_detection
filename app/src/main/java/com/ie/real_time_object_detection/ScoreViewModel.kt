@@ -23,7 +23,9 @@ class ScoreViewModel: ViewModel() {
     private val tipsService = createRetrofitService()
 
     fun resetTips(){
-        _tips.postValue("")
+        viewModelScope.launch(Dispatchers.IO) {
+            _tips.postValue("")
+        }
     }
 
     fun hasNameAndScore(): Boolean {
