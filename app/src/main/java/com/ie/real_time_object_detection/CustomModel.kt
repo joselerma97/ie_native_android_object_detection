@@ -19,6 +19,7 @@ import android.os.HandlerThread
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -59,80 +60,86 @@ class CustomModel : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_custom_model)
 
-        floatingActionButton = findViewById(R.id.goHome)
-        floatingActionButton.isVisible = false
-        floatingActionButton.setOnClickListener {
-            viewModel.resetTips()
-            PredictionsDialog.newInstance(viewModel.name!!, viewModel.score!!).show(supportFragmentManager,
-                System.currentTimeMillis().toString())
-        }
-
-        getPermission()
-
-        labels = FileUtil.loadLabels(this, "plastic_glass_can.txt")
-        imageProcessor = ImageProcessor.Builder().add(
-            ResizeOp(
-            512,512, ResizeOp.ResizeMethod.BILINEAR)
-        ).build()
-        model = PlasticGlassCan.newInstance(this)
-
-        val handlerThread = HandlerThread("HandlerVideoThread")
-        handlerThread.start()
-        handler = Handler(handlerThread.looper)
-
-        cameraView = findViewById(R.id.cameraView)
-        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        imageView = findViewById(R.id.imageView)
-
-        cameraView.surfaceTextureListener = object: TextureView.SurfaceTextureListener{
-            override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
-                openCamara()
+        try{
+            floatingActionButton = findViewById(R.id.goHome)
+            floatingActionButton.isVisible = false
+            floatingActionButton.setOnClickListener {
+                viewModel.resetTips()
+                PredictionsDialog.newInstance(viewModel.name!!, viewModel.score!!).show(supportFragmentManager,
+                    System.currentTimeMillis().toString())
             }
 
-            override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
-            }
+            if(getPermission()){
 
-            override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean = false
+                labels = FileUtil.loadLabels(this, "plastic_glass_can.txt")
+                imageProcessor = ImageProcessor.Builder().add(
+                    ResizeOp(
+                        512,512, ResizeOp.ResizeMethod.BILINEAR)
+                ).build()
+                model = PlasticGlassCan.newInstance(this)
 
-            override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
-                bitMap = cameraView.bitmap!!
+                val handlerThread = HandlerThread("HandlerVideoThread")
+                handlerThread.start()
+                handler = Handler(handlerThread.looper)
 
-                // Creates inputs for reference.
-                var image = TensorImage.fromBitmap(bitMap)
-                image = imageProcessor.process(image)
-                // Runs model inference and gets result.
-                val outputs = model.process(image)
-                val locations = outputs.locationsAsTensorBuffer.floatArray
-                val classes = outputs.classesAsTensorBuffer.floatArray
-                val scores = outputs.scoresAsTensorBuffer.floatArray
+                cameraView = findViewById(R.id.cameraView)
+                cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                imageView = findViewById(R.id.imageView)
 
-                val mutable = bitMap.copy(Bitmap.Config.ARGB_8888, true)
-                val canvas = Canvas(mutable)
-
-                val h = mutable.height
-                val w = mutable.width
-                paint.textSize = h/40f
-                paint.strokeWidth = h/350f
-                var x = 0
-                scores.forEachIndexed { index, fl ->
-                    x = index
-                    x *= 4
-                    if(fl > 0.6){
-                        paint.color = colors[index]
-                        paint.style = Paint.Style.STROKE
-                        canvas.drawRect(RectF(locations[x + 1] *w, locations[x] *h, locations[x + 3] *w, locations[x + 2] *h), paint)
-                        paint.style = Paint.Style.FILL
-                        canvas.drawText(labels[classes[index].toInt()] +" "+fl.toString(), locations[x+1] *w, locations[x] *h, paint)
-
-                        viewModel.name = labels[classes[index].toInt()]
-                        viewModel.score = fl
+                cameraView.surfaceTextureListener = object: TextureView.SurfaceTextureListener{
+                    override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
+                        openCamara()
                     }
-                }
 
-                imageView.setImageBitmap(mutable)
-                floatingActionButton.isVisible = viewModel.hasNameAndScore()
+                    override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
+                    }
+
+                    override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean = false
+
+                    override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
+                        bitMap = cameraView.bitmap!!
+
+                        // Creates inputs for reference.
+                        var image = TensorImage.fromBitmap(bitMap)
+                        image = imageProcessor.process(image)
+                        // Runs model inference and gets result.
+                        val outputs = model.process(image)
+                        val locations = outputs.locationsAsTensorBuffer.floatArray
+                        val classes = outputs.classesAsTensorBuffer.floatArray
+                        val scores = outputs.scoresAsTensorBuffer.floatArray
+
+                        val mutable = bitMap.copy(Bitmap.Config.ARGB_8888, true)
+                        val canvas = Canvas(mutable)
+
+                        val h = mutable.height
+                        val w = mutable.width
+                        paint.textSize = h/40f
+                        paint.strokeWidth = h/350f
+                        var x = 0
+                        scores.forEachIndexed { index, fl ->
+                            x = index
+                            x *= 4
+                            if(fl > 0.6){
+                                paint.color = colors[index]
+                                paint.style = Paint.Style.STROKE
+                                canvas.drawRect(RectF(locations[x + 1] *w, locations[x] *h, locations[x + 3] *w, locations[x + 2] *h), paint)
+                                paint.style = Paint.Style.FILL
+                                canvas.drawText(labels[classes[index].toInt()] +" "+fl.toString(), locations[x+1] *w, locations[x] *h, paint)
+
+                                viewModel.name = labels[classes[index].toInt()]
+                                viewModel.score = fl
+                            }
+                        }
+
+                        imageView.setImageBitmap(mutable)
+                        floatingActionButton.isVisible = viewModel.hasNameAndScore()
+                    }
+
+                }
             }
 
+        }catch(e: Exception){
+            Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
         }
 
     }
@@ -170,11 +177,13 @@ class CustomModel : AppCompatActivity() {
             }, handler)
     }
 
-    private fun getPermission(){
+    private fun getPermission(): Boolean{
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
             PackageManager.PERMISSION_GRANTED){
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 101)
+            return false
         }
+        return true
     }
 
     override fun onRequestPermissionsResult(
